@@ -24,7 +24,8 @@ internal fun setupInitialData(dal: AntaeusDal) {
                     currency = customer.currency
                 ),
                 customer = customer,
-                status = if (it == 1) InvoiceStatus.PENDING else InvoiceStatus.PAID
+                status = if (it == 1) InvoiceStatus.PENDING else InvoiceStatus.PAID,
+                timezone = getTimeZoneforCurrency(customer.currency)
             )
         }
     }
@@ -37,4 +38,15 @@ internal fun getPaymentProvider(): PaymentProvider {
                 return Random.nextBoolean()
         }
     }
+}
+
+internal fun getTimeZoneforCurrency(currency: Currency): String {
+
+   val timeZoneMap = hashMapOf<Currency,String>()
+    timeZoneMap[Currency.DKK]="Europe/Copenhagen"
+    timeZoneMap[Currency.USD]="America/New_York"
+    timeZoneMap[Currency.EUR]="Europe/Brussels"
+    timeZoneMap[Currency.GBP]="Europe/London"
+    timeZoneMap[Currency.SEK]="Europe/Copenhagen"
+    return timeZoneMap.get(currency).toString()
 }

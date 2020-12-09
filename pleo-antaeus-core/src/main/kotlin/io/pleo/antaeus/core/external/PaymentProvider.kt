@@ -25,4 +25,7 @@ interface PaymentProvider {
      */
 
     fun charge(invoice: Invoice): Boolean
+    //1.get payment provider
+    //2.TDD
+    //3.provider.charge()
 }
