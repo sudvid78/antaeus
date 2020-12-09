@@ -86,3 +86,31 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+ 
+
+## Functional Business Requirements Identified
+*   Charge customers of different markets(US,EUR etc) on Day one of every month
+*   Customers with different currency involved here which means scheduling to be trigerred according to different timezones
+*   We might have to deal with currency conversion due to multi-currency payment processing
+
+##Non Functional requirements Identified
+*   Performance - Scheduling jobs should be performant by adapting concurrency OR parallelism with Reactive Programing
+*   Scalability - Scheduling jobs should be scalable enough to handle the increasing load
+*   Robustness -  Scheduling jobs should recover automatically from the error and trigger a retry mechanism until it succeds
+*   High Availability - System should be available in case of a Disaster recover
+
+##Core Logic-
+````
+start the timer for different timezones which runs for every 24 hours
+On DAY==1, charge pending invoices
+    change Invoice status = PAID upon successful charging
+    change Invoice status = RETRY upon failure
+On DAY==25, send reminder mails to customers
+    change the PAID Invoice status to Pending
+For all days, run the retry jobs
+
+Note-  As of now, all process are executed in sequential manner i.e. for loop to process invoices
+        Later this will be changed to adapt concurrency or Parallelism with Reactive Programming or
+        batch processing with rate limiter
+ 
+````
