@@ -53,7 +53,6 @@ class BillingService(
         getTimeZoneforCurrency().values.forEach {
                 timerList.add(fixedRateTimer(it+"-Scheduler",startAt = Date(),
                                 period = 24 * 60 * 60 * 1000){
-                                    val index=0
                                     val z = ZoneId.of(it)
                                     val ld: LocalDate = LocalDate.now(z)
                                     val dayOfMonth: Int = ld.getDayOfMonth()
