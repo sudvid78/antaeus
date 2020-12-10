@@ -1,0 +1,23 @@
+//Payment Provider
+        //Multiple payment providers for each currency
+        //charge invoice for each currency performant - coroutines
+        //check balance , if -ve stop processing payment
+        //Update the status
+
+    //scheduling logic scalable
+        //1.batch
+            //db records with status Pending
+                    // Kafka queue - streaming engine
+                    //threadfactory - multiple threads
+                    //future = status
+            //batch processing engine with parallelism process spark or storm
+            //
+
+    //retry mechanism
+
+    git checkout -b "branch"
+    git add .
+    git commit -m ""
+    git push origin branch
+
+   github token= f25f3f703c242d8c29fdab7ae5f1cccf4dd788c0
