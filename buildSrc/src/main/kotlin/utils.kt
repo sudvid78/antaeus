@@ -1,6 +1,9 @@
 
+
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.kotlin
 
 const val junitVersion = "5.6.0"
@@ -25,14 +28,20 @@ fun Project.kotlinProject() {
         "testImplementation"("org.junit.jupiter:junit-jupiter-params:$junitVersion")
         "runtime"("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     }
-}
-
-/**
- * Configures data layer libs needed for interacting with the DB
- */
-fun Project.dataLibs() {
-    dependencies {
-        "implementation"("org.jetbrains.exposed:exposed:0.17.7")
-        "implementation"("org.xerial:sqlite-jdbc:3.30.1")
+    tasks {
+        // Use the native JUnit support of Gradle.
+        "test"(Test::class) {
+            useJUnitPlatform()
+        }
     }
 }
+    /**
+     * Configures data layer libs needed for interacting with the DB
+     */
+    fun Project.dataLibs() {
+        dependencies {
+            "implementation"("org.jetbrains.exposed:exposed:0.17.7")
+            "implementation"("org.xerial:sqlite-jdbc:3.30.1")
+        }
+    }
+

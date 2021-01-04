@@ -20,4 +20,8 @@
     git commit -m ""
     git push origin branch
 
-   github token= f25f3f703c242d8c29fdab7ae5f1cccf4dd788c0
+   github token= 
+
+   1.impl batch processing - schedule a thread pool of 100 threads, each thread can start processing like 10 invoices
+   2.replace java.util.timer with coroutines or threadpool executor
+   3.error handling - how to recover 

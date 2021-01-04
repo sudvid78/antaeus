@@ -4,5 +4,6 @@ enum class InvoiceStatus {
     PENDING,
     PAID,
     RETRY,
-    CANCELLED
+    CANCELLED,
+    FAILED
 }

@@ -7,13 +7,11 @@
 
 package io.pleo.antaeus.data
 
-import io.pleo.antaeus.models.Currency
-import io.pleo.antaeus.models.Customer
-import io.pleo.antaeus.models.Invoice
-import io.pleo.antaeus.models.InvoiceStatus
-import io.pleo.antaeus.models.Money
+import io.pleo.antaeus.models.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.Error
+import kotlin.random.Random
 
 class AntaeusDal(private val db: Database) {
     fun fetchInvoice(id: Int): Invoice? {
@@ -21,46 +19,85 @@ class AntaeusDal(private val db: Database) {
         return transaction(db) {
             // Returns the first invoice with matching id.
             InvoiceTable
-                .select { InvoiceTable.id.eq(id) }
-                .firstOrNull()
-                ?.toInvoice()
+                    .select { InvoiceTable.id.eq(id) }
+                    .firstOrNull()
+                    ?.toInvoice()
         }
     }
 
-    //fetch the Invoices based on TimeZone
-    fun fetchPendingInvoices(timezone: String): List<Invoice> {
-        return transaction(db) {
-            InvoiceTable
-                    .select { InvoiceTable.timezone.eq(timezone.toString()) }
-                    .map { it.toInvoice() }
+    //fetch invoices in batchSize start from offsetId
+
+    fun fetchPendingInvoices(offsetId: Int, batchSize: Int, invoiceStatus: InvoiceStatus, timezone: String): List<Invoice> {
+        if (!offsetId.equals(-1)) {
+            return transaction(db) {
+                InvoiceTable
+                        .select {
+                            InvoiceTable.id.greater<Int, Int>(offsetId) and
+                                    InvoiceTable.timezone.eq(timezone.toString()) and
+                                    InvoiceTable.status.eq(invoiceStatus.toString())
+                        }
+                        .limit(batchSize)
+                        .sortedBy { InvoiceTable.id }
+                        .map { it.toInvoice() }
+            }
+        } else {
+            return transaction(db) {
+                InvoiceTable
+                        .select {
+                            InvoiceTable.timezone.eq(timezone.toString()) and
+                                    InvoiceTable.status.eq(invoiceStatus.toString())
+                        }
+                        .limit(batchSize)
+                        .sortedBy { InvoiceTable.id }
+                        .map { it.toInvoice() }
+            }
         }
     }
+
     //update Invoice with Status
-    fun updateInvoicesStatus(customerId:Int,statusTo:String){
-        InvoiceTable.update ({InvoiceTable.customerId.eq(customerId)}){
-                 it[InvoiceTable.status]=statusTo
+    fun updateInvoice(id: Int, statusTo: InvoiceStatus, idempotencyKey:String?=null,retryCount: Int = -1):Invoice? {
+        transaction(db) {
+            InvoiceTable.update({ InvoiceTable.id.eq(id) }) {
+                it[InvoiceTable.status] = statusTo.toString()
+                it[InvoiceTable.idempotencyKey] = idempotencyKey.toString()
+                if (retryCount > 0) {
+                    it[InvoiceTable.retryCount] = retryCount
+                }
+            }
+        }
+        val invoice = fetchInvoice(id)
+        return invoice
+    }
+
+    fun updateInvoiceIdempotencyKey(customerId: Int,idempotencyKey: String?=null){
+        InvoiceTable.update ( { InvoiceTable.customerId.eq(customerId) } ){
+            if(null != idempotencyKey)
+                it[InvoiceTable.idempotencyKey] = idempotencyKey.toString()
         }
     }
 
     fun fetchInvoices(): List<Invoice> {
         return transaction(db) {
             InvoiceTable
-                .selectAll()
-                .map { it.toInvoice() }
+                    .selectAll()
+                    .map { it.toInvoice() }
         }
     }
 
-    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = InvoiceStatus.PENDING, timezone: String): Invoice? {
+    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = InvoiceStatus.PENDING, timezone: String,idempotencyKey: String?=null, retryCount: Int = -1): Invoice? {
         val id = transaction(db) {
             // Insert the invoice and returns its new id.
             InvoiceTable
-                .insert {
-                    it[this.value] = amount.value
-                    it[this.currency] = amount.currency.toString()
-                    it[this.status] = status.toString()
-                    it[this.customerId] = customer.id
-                    it[this.timezone] = timezone.toString()
-                } get InvoiceTable.id
+                    .insert {
+                        it[this.value] = amount.value
+                        it[this.currency] = amount.currency.toString()
+                        it[this.status] = status.toString()
+                        it[this.customerId] = customer.id
+                        it[this.emailId] = String().format(customer.id, "@gmail.com").toString()
+                        it[this.timezone] = timezone.toString()
+                        it[this.retryCount] = retryCount
+                        it[this.idempotencyKey]= idempotencyKey.toString()
+                    } get InvoiceTable.id
         }
 
         return fetchInvoice(id)
@@ -69,17 +106,17 @@ class AntaeusDal(private val db: Database) {
     fun fetchCustomer(id: Int): Customer? {
         return transaction(db) {
             CustomerTable
-                .select { CustomerTable.id.eq(id) }
-                .firstOrNull()
-                ?.toCustomer()
+                    .select { CustomerTable.id.eq(id) }
+                    .firstOrNull()
+                    ?.toCustomer()
         }
     }
 
     fun fetchCustomers(): List<Customer> {
         return transaction(db) {
             CustomerTable
-                .selectAll()
-                .map { it.toCustomer() }
+                    .selectAll()
+                    .map { it.toCustomer() }
         }
     }
 
@@ -93,4 +130,5 @@ class AntaeusDal(private val db: Database) {
 
         return fetchCustomer(id)
     }
+
 }

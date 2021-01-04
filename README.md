@@ -87,30 +87,43 @@ The code given is structured as follows. Feel free however to modify the structu
 
 Happy hacking 😁!
  
+My Approach 😁
 
 ## Functional Business Requirements Identified
 *   Charge customers of different markets(US,EUR etc) on Day one of every month
 *   Customers with different currency involved here which means scheduling to be trigerred according to different timezones
-*   We might have to deal with currency conversion due to multi-currency payment processing
 
-##Non Functional requirements Identified
-*   Performance - Scheduling jobs should be performant by adapting concurrency OR parallelism with Reactive Programing
-*   Scalability - Scheduling jobs should be scalable enough to handle the increasing load
-*   Robustness -  Scheduling jobs should recover automatically from the error and trigger a retry mechanism until it succeds
-*   High Availability - System should be available in case of a Disaster recover
-
-##Core Logic-
+## Approach
 ````
-start the timer for different timezones which runs for every 24 hours
-On DAY==1, charge pending invoices
-    change Invoice status = PAID upon successful charging
-    change Invoice status = RETRY upon failure
-On DAY==25, send reminder mails to customers
-    change the PAID Invoice status to Pending
-For all days, run the retry jobs
+Start the timer for 2 timezones, America and Europe market and all customers in Europe zone are mapped to Denmark time zone and 
+American customers to America timezone. Both timer runs once for every 24 hours and process invoices asyncronously in the order below,
+##On DAY==1, 
+    1. fetch all Invoices with status = PENDING in batch and submit to the Runnable class 'charge'. The class 'charge' process the invoices in below order:      
+    the Runnable task 'charge' 2. check for
+        1. check for low balance and abort the operation if low balance and update the invoice status to Retry  
+        2. attempts to charge the invoice and update the status as PAID
+        3. If failed to charge, update the status to RETRY if retry count is <= maxretrycount else mark the status as Failed 
+           which prevents from picking up the invoice for next billing. this might help to take some action for those invoices.
+        4. While attempting to charge, guard with client idempotency key to make sure the exactly once semantics
+    
 
-Note-  As of now, all process are executed in sequential manner i.e. for loop to process invoices
-        Later this will be changed to adapt concurrency or Parallelism with Reactive Programming or
-        batch processing with rate limiter
+##On DAY == 25,
+        This is to prepare all the PAID invoices for next month billing. 
+    1. fetch all the invoice with status = PAID , send a reminder mail for next month and update the status to PENDING , 
+        so that the scheduler can start charging
+##From DAY ==2 until DAY ==14,
+    Fetch the invoices with status = RETRY , send a mail that payment is due and attempt to charge for the next 14 days or so.   
+
+## Code Compilation and Execution
+## Code compiled successfully and executed Successfully
  
+##Tests
+Successfully passed test scripts for pending invoices and retry invoices
+
+##Note
+Most of the configuration like, mapping the currency to timezone, Retry count, batchSize etc are 
+hardcoded / simplified for demo purposes. Ideally these vars are to be updated in DM via an admin console
+Similarly generating idempotency key and sending email is very much simplified for demo purpose 
+
+
 ````

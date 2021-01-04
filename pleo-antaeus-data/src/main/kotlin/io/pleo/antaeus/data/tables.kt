@@ -12,12 +12,16 @@ object InvoiceTable : Table() {
     val currency = varchar("currency", 3)
     val value = decimal("value", 1000, 2)
     val customerId = reference("customer_id", CustomerTable.id)
+    val emailId = text("emailId")
     val status = text("status")
     val timezone = text("timezone")
+    val retryCount = integer("retryCount")
+    val idempotencyKey = text("idempotencyKey")
 }
 
 object CustomerTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val currency = varchar("currency", 3)
 }
+
 

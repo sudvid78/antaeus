@@ -10,13 +10,13 @@ import kotlin.random.Random
 
 // This will create all schemas and setup initial data
 internal fun setupInitialData(dal: AntaeusDal) {
+
     val customers = (1..100).mapNotNull {
         dal.createCustomer(
             currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
         )
     }
-
-    customers.forEach { customer ->
+     customers.forEach { customer ->
         (1..10).forEach {
             dal.createInvoice(
                 amount = Money(
@@ -26,6 +26,8 @@ internal fun setupInitialData(dal: AntaeusDal) {
                 customer = customer,
                 status = if (it == 1) InvoiceStatus.PENDING else InvoiceStatus.PAID,
                 timezone = getTimeZoneforCurrency(customer.currency)
+
+
             )
         }
     }
@@ -45,8 +47,8 @@ internal fun getTimeZoneforCurrency(currency: Currency): String {
    val timeZoneMap = hashMapOf<Currency,String>()
     timeZoneMap[Currency.DKK]="Europe/Copenhagen"
     timeZoneMap[Currency.USD]="America/New_York"
-    timeZoneMap[Currency.EUR]="Europe/Brussels"
-    timeZoneMap[Currency.GBP]="Europe/London"
+    timeZoneMap[Currency.EUR]="Europe/Copenhagen"
+    timeZoneMap[Currency.GBP]="Europe/Copenhagen"
     timeZoneMap[Currency.SEK]="Europe/Copenhagen"
     return timeZoneMap.get(currency).toString()
 }
