@@ -89,9 +89,12 @@ Happy hacking 😁!
  
 My Approach 😁
 
-## Functional Business Requirements Identified
+## Functional Business Requirements realized/assumed
 *   Charge customers of different markets(US,EUR etc) on Day one of every month
 *   Customers with different currency involved here which means scheduling to be trigerred according to different timezones
+*   If charging fails on Day one of month , then attempt a retry operation for certain number of times
+*   Send reminder mails during between an unsuccessful charging until say, next 14 days or so
+*   Send reminder mail for next month billing for invoices with PAID status 
 
 ## Approach
 ````
@@ -112,18 +115,25 @@ American customers to America timezone. Both timer runs once for every 24 hours 
     1. fetch all the invoice with status = PAID , send a reminder mail for next month and update the status to PENDING , 
         so that the scheduler can start charging
 ##From DAY ==2 until DAY ==14,
-    Fetch the invoices with status = RETRY , send a mail that payment is due and attempt to charge for the next 14 days or so.   
+    Fetch the invoices with status = RETRY , send a mail that payment is due and attempt to charge for the next 14 days or so.
 
-## Code Compilation and Execution
-## Code compiled successfully and executed Successfully
+refer io.pleo.antaeus.core.services.helper.kt for RUnnable task charge and reminder   
+````
+
+## Code Compilation and Execution Status - Successfully executed
  
 ##Tests
 Successfully passed test scripts for pending invoices and retry invoices
 
-##Note
+## Note - Things simplified for demo purpose 
 Most of the configuration like, mapping the currency to timezone, Retry count, batchSize etc are 
 hardcoded / simplified for demo purposes. Ideally these vars are to be updated in DM via an admin console
 Similarly generating idempotency key and sending email is very much simplified for demo purpose 
 
+## Area for improvement/ Non-functional requirements. 
+1. Submitting the tasks for charging could be scaled by posting the submit tasks messages
+   to an Distributed/Enterprise level pub/sub Queue such as KAFKA
+2. Implement an Alerting system like Prometheus to raise Functional alerts during failure billing or Invoices getting FAILED 
+    even after retried after certain number of times 
+3. Multiple payment provider could be deployed to speed up the Charging operations    
 
-````
