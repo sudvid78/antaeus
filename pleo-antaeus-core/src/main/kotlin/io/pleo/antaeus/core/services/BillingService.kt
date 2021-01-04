@@ -14,7 +14,7 @@ import java.time.Instant
 class BillingService(
     private val paymentProvider: PaymentProvider,
     private val invoiceService: InvoiceService
-    //Initialize appConfig with batchSize, DAY_OF_MONTH to process invoice and send reminder
+    // Initialize appConfig with batchSize, DAY_OF_MONTH to process invoice and send reminder
 
 ) {
 

@@ -60,6 +60,7 @@ class charge(
                 e.printStackTrace()
             } catch (e: Exception) {
                 logger.error(Instant.now().toString() + " Exception during the operation for invoiceid ", invoice.id)
+                logger.error(e.printStackTrace().toString())
                 e.printStackTrace()
             } finally {
                 //clear the Idempotency key
